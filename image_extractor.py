@@ -22,15 +22,15 @@ for path in paths:
         i += 1
         n = '{0:0>3}'.format(i)
         url = f'https://www.serebii.net/pokemon/art/{n}.png'
-        # print(f'Downloading from: {url}')
-        # res = requests.get(url, stream=True)
-        # if res.status_code == 200:
-        #     with open(f'resources/images/{n}.png', 'wb') as f:
-        #         res.raw.decode_content = True
-        #         shutil.copyfileobj(res.raw, f)
-        meta.append({'id': n, 'name': path.text})
-        # else:
-        #     print(f'*****Unable to download from: {url} - {res.status_code}')
+        print(f'Downloading from: {url}')
+        res = requests.get(url, stream=True)
+        if res.status_code == 200:
+            with open(f'resources/images/{n}.png', 'wb') as f:
+                res.raw.decode_content = True
+                shutil.copyfileobj(res.raw, f)
+            meta.append({'id': n, 'name': path.text})
+        else:
+            print(f'*****Unable to download from: {url} - {res.status_code}')
 with open('resources/metadata.json', 'w') as m:
     json.dump(meta, m, indent=4)
 
