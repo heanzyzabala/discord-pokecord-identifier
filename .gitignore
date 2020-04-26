@@ -1,2 +1,6 @@
 .idea/
-.venv/
+venv/
+
+resources/images/*
+
+!resources/images/.gitkeep
