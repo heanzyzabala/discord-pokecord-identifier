@@ -1,6 +1,5 @@
 .idea/
 venv/
-
 resources/images/*
-
+resources/*
 !resources/images/.gitkeep
