@@ -2,4 +2,6 @@
 venv/
 resources/images/*
 resources/*
+__pycache__
+
 !resources/images/.gitkeep
