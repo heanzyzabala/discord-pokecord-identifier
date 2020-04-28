@@ -20,6 +20,9 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    if message.embeds:
+        print(message.embeds[0].to_dict())
+
     if message.attachments:
         file = utility.save(message.attachments[0].url)
         name = utility.find(file, context)
