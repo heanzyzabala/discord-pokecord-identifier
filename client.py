@@ -24,7 +24,11 @@ async def on_message(message):
         embed = message.embeds[0].to_dict()
         if 'A wild pokémon has аppeаred!' in embed['title']:
             name = utility.find(embed['image']['url'])
-            e = discord.Embed(title=f'It\'s {name}!', color=discord.colour.Color.dark_red())
+            msg = f'It\'s {name}!'
+            if name is None:
+                msg = 'I\'m not familiar with this pokemon. I\'ll try and revisit this soon.'
+                console.log(embed['image']['url'])
+            e = discord.Embed(title=msg, color=discord.colour.Color.dark_red())
             await message.channel.send(embed=e)
 
 client.run(TOKEN)

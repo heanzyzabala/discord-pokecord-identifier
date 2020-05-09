@@ -41,12 +41,16 @@ def load():
 
 def find(url):
     res = requests.get(url, stream=True).raw
-    img = cv2.imdecode(np.asarray(bytearray(res.read()), dtype='uint8'), cv2.IMREAD_COLOR)
-    for k in r.keys('*'):
+    img = np.asarray(bytearray(res.read()), dtype=np.uint8)
+    img = cv2.imdecode(img, cv2.IMREAD_COLOR)
+    for k in r.keys('pkmn-*'):
         v = r.get(k)
         np_arr = np.fromstring(v, np.uint8)
-        if compare(cv2.imdecode(np_arr, cv2.IMREAD_COLOR), img):
-            return k.decode('utf8').split('-')[1]
+        img2 = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        if compare(img, img2):
+            name = k.decode('utf8').split('pkmn-')[1]
+            r.incr(f'seen-{name}')
+            return
     return None
 
 
