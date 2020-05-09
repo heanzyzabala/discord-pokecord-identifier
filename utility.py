@@ -7,39 +7,52 @@ import tempfile
 import time
 import os
 import re
+import redis
+import numpy as np
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+load_dotenv()
+
+REDIS_URL = os.getenv('REDIS_URL')
+REDIS_PORT = os.getenv('REDIS_PORT')
+REDIS_DB = os.getenv('REDIS_DB')
+
+r = redis.Redis(host=REDIS_URL, port=REDIS_PORT, db=REDIS_DB)
 
 
 def load():
     with open('resources/metadata.json') as json_file:
         metadata = json.load(json_file)
-        context = []
-        for file in glob.glob('resources/images/*.png'):
-            context.append({
-                'name': metadata[os.path.basename(file)],
-                'image': cv2.imread(file)
-            })
-        return context
+        is_cached = r.get('is_cached')
+        if not is_cached:
+            r.set('is_cached', '0')
+
+        if r.get('is_cached').decode('utf8') == '1':
+            print('Skipping cache')
+        else:
+            for file in glob.glob('resources/images/*.png'):
+                name = metadata[os.path.basename(file)]
+                if not r.exists(name):
+                    encoded_img = cv2.imencode('.png', cv2.imread(file))[1].tostring()
+                    r.set(f'pkmn-{name}', encoded_img)
+            r.set('is_cached', '1')
+            print('Saved to cache')
 
 
-def save(url):
-    res = requests.get(url, stream=True)
-    with open('resources/temp.png', 'wb') as f:
-        res.raw.decode_content = True
-        shutil.copyfileobj(res.raw, f)
-    return cv2.imread(f.name)
-
-
-def find(supplied, context):
-    for c in context:
-        if compare(c['image'], supplied):
-            return c['name']
+def find(url):
+    res = requests.get(url, stream=True).raw
+    img = cv2.imdecode(np.asarray(bytearray(res.read()), dtype='uint8'), cv2.IMREAD_COLOR)
+    for k in r.keys('*'):
+        v = r.get(k)
+        np_arr = np.fromstring(v, np.uint8)
+        if compare(cv2.imdecode(np_arr, cv2.IMREAD_COLOR), img):
+            return k.decode('utf8').split('-')[1]
     return None
 
 
-def compare(src, supplied):
-    if src.shape == supplied.shape:
-        diff = cv2.subtract(src, supplied)
+def compare(img0, img1):
+    if img0.shape == img1.shape:
+        diff = cv2.subtract(img0, img1)
         b, g, r = cv2.split(diff)
         return cv2.countNonZero(b) == 0 and cv2.countNonZero(g) == 0 and cv2.countNonZero(r) == 0
     return False
