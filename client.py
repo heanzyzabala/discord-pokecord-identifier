@@ -27,7 +27,7 @@ async def on_message(message):
             msg = f'It\'s {name}!'
             if name is None:
                 msg = 'I\'m not familiar with this pokemon. I\'ll try and revisit this soon.'
-                console.log(embed['image']['url'])
+                print(embed['image']['url'])
             e = discord.Embed(title=msg, color=discord.colour.Color.dark_red())
             await message.channel.send(embed=e)
 

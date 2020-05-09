@@ -50,7 +50,7 @@ def find(url):
         if compare(img, img2):
             name = k.decode('utf8').split('pkmn-')[1]
             r.incr(f'seen-{name}')
-            return
+            return name
     return None
 
 
