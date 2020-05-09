@@ -20,14 +20,12 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.embeds:
-        print(message.embeds[0].to_dict())
-
-    if message.attachments:
-        file = utility.save(message.attachments[0].url)
-        name = utility.find(file, context)
-
-        if name:
-            await message.channel.send(name)
+    if message.embeds and str(message.author.id) == '365975655608745985':
+        embed = message.embeds[0].to_dict()
+        if 'A wild pokémon has аppeаred!' in embed['title']:
+            file = utility.save(embed['image']['url'])
+            name = utility.find(file, context)
+            e = discord.Embed(title=f'It\'s {name}!', color=discord.colour.Color.dark_red())
+            await message.channel.send(embed=e)
 
 client.run(TOKEN)
