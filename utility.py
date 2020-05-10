@@ -28,7 +28,7 @@ def load():
             r.set('is_cached', '0')
 
         if r.get('is_cached').decode('utf8') == '1':
-            print('Skipping cache')
+            print('Skipped caching')
         else:
             for file in glob.glob('resources/images/*.png'):
                 name = metadata[os.path.basename(file)]
