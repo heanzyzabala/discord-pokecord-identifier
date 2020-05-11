@@ -19,9 +19,10 @@ REDIS_DB = os.getenv('REDIS_DB')
 
 r = redis.Redis(host=REDIS_URL, port=REDIS_PORT, db=REDIS_DB)
 
+dirname = os.path.dirname(__file__)
 
 def load():
-    with open('resources/metadata.json') as json_file:
+    with open(os.path.join(dirname, 'resources/metadata.json')) as json_file:
         metadata = json.load(json_file)
         is_cached = r.get('is_cached')
         if not is_cached:
@@ -30,7 +31,7 @@ def load():
         if r.get('is_cached').decode('utf8') == '1':
             print('Skipped caching')
         else:
-            for file in glob.glob('resources/images/*.png'):
+            for file in glob.glob(os.path.join(dirname, 'resources/images/*.png')):
                 name = metadata[os.path.basename(file)]
                 if not r.exists(name):
                     encoded_img = cv2.imencode('.png', cv2.imread(file))[1].tostring()
