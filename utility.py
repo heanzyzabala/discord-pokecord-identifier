@@ -7,37 +7,33 @@ import tempfile
 import time
 import os
 import re
-import redis
 import numpy as np
 from bs4 import BeautifulSoup
+from pymongo import MongoClient
 from dotenv import load_dotenv
 load_dotenv()
 
-REDIS_URL = os.getenv('REDIS_URL')
-REDIS_PORT = os.getenv('REDIS_PORT')
-REDIS_DB = os.getenv('REDIS_DB')
+MONGO_URL = os.getenv('MONGO_URL')
+MONGO_DB = os.getenv('MONGO_DB')
 
-r = redis.Redis(host=REDIS_URL, port=REDIS_PORT, db=REDIS_DB)
+mongo = MongoClient(MONGO_URL)
+db = mongo[MONGO_DB]
 
 dirname = os.path.dirname(__file__)
+
 
 def load():
     with open(os.path.join(dirname, 'resources/metadata.json')) as json_file:
         metadata = json.load(json_file)
-        is_cached = r.get('is_cached')
-        if not is_cached:
-            r.set('is_cached', '0')
-
-        if r.get('is_cached').decode('utf8') == '1':
-            print('Skipped caching')
-        else:
+        if not db.pkmns.find_one({'is_loaded': {'$exists': True}}):
             for file in glob.glob(os.path.join(dirname, 'resources/images/*.png')):
                 name = metadata[os.path.basename(file)]
-                if not r.exists(name):
-                    encoded_img = cv2.imencode('.png', cv2.imread(file))[1].tostring()
-                    r.set(f'pkmn-{name}', encoded_img)
-            r.set('is_cached', '1')
-            print('Saved to cache')
+                encoded_img = cv2.imencode('.png', cv2.imread(file))[1].tostring()
+                db.pkmns.insert_one({'name': name, 'encoded_img': encoded_img})
+            db.pkmns.insert_one({'is_loaded': True})
+            print('Loaded images to db')
+        else:
+            print('Skipped loading images')
 
 
 def find(url):
